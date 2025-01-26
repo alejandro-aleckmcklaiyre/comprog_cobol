@@ -25,7 +25,6 @@
        01  EOF                  PIC X VALUE 'N'.
        01  FileStatus           PIC X(2).
        01  WS-DeleteTitle       PIC X(50).
-       01  WS-BookFound         PIC X VALUE 'N'.
 
        PROCEDURE DIVISION.
 
@@ -99,30 +98,14 @@
        DELETE-BOOK.
            DISPLAY "Enter the title of the book to delete: "
            ACCEPT WS-DeleteTitle
-           MOVE 'N' TO WS-BookFound
-           MOVE 'N' TO EOF  *> Reset EOF flag before reading
-           PERFORM UNTIL EOF = 'Y'
-               READ BorrowedBooksFile INTO BorrowedBookRecord
-                   AT END
-                       MOVE 'Y' TO EOF
-                   NOT AT END
-                       IF WS-DeleteTitle = BookTitle
-                           DELETE BorrowedBooksFile
-                               INVALID KEY
-                                   DISPLAY "Error: Book not found."
-                               NOT INVALID KEY
-                       DISPLAY "Book successfully deleted."
-                       PERFORM DISPLAY-BOOKS
+           MOVE WS-DeleteTitle TO BookTitle
+           DELETE BorrowedBooksFile
+               INVALID KEY
+                   DISPLAY "Error: Book not found."
+               NOT INVALID KEY
+                   DISPLAY "Book successfully deleted."
+                   PERFORM DISPLAY-BOOKS  *> Call to display updated list
 
-                                   MOVE 'Y' TO WS-BookFound
-                           END-DELETE
-                       END-IF
-               END-READ
-           END-PERFORM
-           IF WS-BookFound = 'N' 
-               DISPLAY "Error: Book not found."
-
-               DISPLAY "Error: Book not found."
-           END-IF.
+           END-DELETE.
 
        END PROGRAM BorrowedBooks.
