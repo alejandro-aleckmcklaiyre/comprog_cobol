@@ -25,6 +25,10 @@
        01  EOF                  PIC X VALUE 'N'.
        01  FileStatus           PIC X(2).
        01  WS-DeleteTitle       PIC X(50).
+       01  New-Author         PIC X(30).
+       01  New-BorrowerName   PIC X(30).
+       01  New-DateBorrowed   PIC X(10).
+
 
        PROCEDURE DIVISION.
 
@@ -43,7 +47,8 @@
                DISPLAY "1. Add a new borrowed book"
                DISPLAY "2. Display borrowed books"
                DISPLAY "3. Delete Book"
-               DISPLAY "4. Exit"
+               DISPLAY "4. Update Book"
+               DISPLAY "5. Exit"
                ACCEPT WS-Choice
                EVALUATE WS-Choice
                    WHEN 1
@@ -53,6 +58,8 @@
                    WHEN 3
                        PERFORM DELETE-BOOK
                    WHEN 4
+                       PERFORM UPDATE-BOOK
+                   WHEN 5
                        MOVE 'N' TO WS-Continue
                    WHEN OTHER
                        DISPLAY "Invalid choice, please try again."
@@ -107,5 +114,46 @@
                    PERFORM DISPLAY-BOOKS  *> Call to display updated list
 
            END-DELETE.
+      
+        UPDATE-BOOK.
+           DISPLAY "Enter the title of the book to update: "
+           ACCEPT BookTitle
+           START BorrowedBooksFile KEY IS EQUAL TO BookTitle
+               INVALID KEY
+                   DISPLAY "Book with title " BookTitle " not found."
+               NOT INVALID KEY
+                   DISPLAY "Current details of the book:"
+                   DISPLAY "Title: " BookTitle
+                   DISPLAY "Author: " Author
+                   DISPLAY "Borrower: " BorrowerName
+                   DISPLAY "Date Borrowed: " DateBorrowed
+                   DISPLAY "--------------------------"
+                   DISPLAY "--------------------------"
+                   DISPLAY "Enter new author name: "
+                   ACCEPT New-Author
+                   IF New-Author NOT = SPACE
+                       MOVE New-Author TO Author
+                   END-IF
+
+                   DISPLAY "Enter new borrower name: "
+                   ACCEPT New-BorrowerName
+                   IF New-BorrowerName NOT = SPACE
+                       MOVE New-BorrowerName TO BorrowerName
+                   END-IF
+
+                   DISPLAY "Enter new date borrowed: "
+                   ACCEPT New-DateBorrowed
+                   IF New-DateBorrowed NOT = SPACE
+                       MOVE New-DateBorrowed TO DateBorrowed
+                   END-IF
+
+                   REWRITE BorrowedBookRecord
+                       INVALID KEY
+                           DISPLAY "Error updating book record."
+                       NOT INVALID KEY
+                           DISPLAY "Book record updated successfully."
+                   END-REWRITE.
+
+
 
        END PROGRAM BorrowedBooks.
