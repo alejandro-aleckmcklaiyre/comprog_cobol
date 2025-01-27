@@ -15,7 +15,7 @@
        FD  BorrowedBooksFile.
        01  BorrowedBookRecord.
            05  BookTitle         PIC X(50).
-           05  Author            PIC X(30).
+           05  Author-Name       PIC X(30).
            05  BorrowerName      PIC X(30).
            05  DateBorrowed      PIC X(10).
 
@@ -25,9 +25,12 @@
        01  EOF                  PIC X VALUE 'N'.
        01  FileStatus           PIC X(2).
        01  WS-DeleteTitle       PIC X(50).
-       01  New-Author         PIC X(30).
-       01  New-BorrowerName   PIC X(30).
-       01  New-DateBorrowed   PIC X(10).
+       01  New-Author           PIC X(30).
+       01  New-BorrowerName     PIC X(30).
+       01  New-DateBorrowed     PIC X(10).
+       01  SEARCH-TITLE         PIC X(50).
+       01  BOOKFOUND            PIC X VALUE 'N'.
+      
 
 
        PROCEDURE DIVISION.
@@ -48,7 +51,8 @@
                DISPLAY "2. Display borrowed books"
                DISPLAY "3. Delete Book"
                DISPLAY "4. Update Book"
-               DISPLAY "5. Exit"
+               DISPLAY "5. Search for a book"
+               DISPLAY "6. Exit"
                ACCEPT WS-Choice
                EVALUATE WS-Choice
                    WHEN 1
@@ -60,6 +64,8 @@
                    WHEN 4
                        PERFORM UPDATE-BOOK
                    WHEN 5
+                       PERFORM SEARCH-BOOK
+                   WHEN 6
                        MOVE 'N' TO WS-Continue
                    WHEN OTHER
                        DISPLAY "Invalid choice, please try again."
@@ -73,7 +79,7 @@
            DISPLAY "Enter book title: "
            ACCEPT BookTitle
            DISPLAY "Enter author: "
-           ACCEPT Author
+           ACCEPT Author-Name
            DISPLAY "Enter borrower's name: "
            ACCEPT BorrowerName
            DISPLAY "Enter date borrowed (YYYY-MM-DD): "
@@ -94,7 +100,7 @@
                        MOVE 'Y' TO EOF
                    NOT AT END
                        DISPLAY "Title: " BookTitle
-                       DISPLAY "Author: " Author
+                       DISPLAY "Author: " Author-Name
                        DISPLAY "Borrower: " BorrowerName
                        DISPLAY "Date Borrowed: " DateBorrowed
                        DISPLAY "--------------------------"
@@ -124,7 +130,7 @@
                NOT INVALID KEY
                    DISPLAY "Current details of the book:"
                    DISPLAY "Title: " BookTitle
-                   DISPLAY "Author: " Author
+                   DISPLAY "Author: " Author-Name
                    DISPLAY "Borrower: " BorrowerName
                    DISPLAY "Date Borrowed: " DateBorrowed
                    DISPLAY "--------------------------"
@@ -132,7 +138,7 @@
                    DISPLAY "Enter new author name: "
                    ACCEPT New-Author
                    IF New-Author NOT = SPACE
-                       MOVE New-Author TO Author
+                       MOVE New-Author TO Author-name
                    END-IF
 
                    DISPLAY "Enter new borrower name: "
@@ -153,6 +159,34 @@
                        NOT INVALID KEY
                            DISPLAY "Book record updated successfully."
                    END-REWRITE.
+
+       SEARCH-BOOK.
+           DISPLAY "Enter book title to search: "
+           ACCEPT BookTitle
+           MOVE 'N' TO BOOKFOUND
+           MOVE 'N' TO EOF
+           DISPLAY "Searching for book with title: " BookTitle
+
+           START BorrowedBooksFile KEY IS EQUAL TO BookTitle
+               INVALID KEY
+                   DISPLAY "Book not found."
+               NOT INVALID KEY
+                   READ BorrowedBooksFile INTO BorrowedBookRecord
+                       AT END
+                           MOVE 'Y' TO EOF
+                       NOT AT END
+                           DISPLAY "Book found!"
+                           DISPLAY "Title: " BookTitle
+                           DISPLAY "Author: " Author-Name
+                           DISPLAY "Borrower: " BorrowerName
+                           DISPLAY "Date Borrowed: " DateBorrowed
+                           MOVE 'Y' TO BOOKFOUND
+                   END-READ
+           END-START.
+
+           IF BOOKFOUND = 'N'
+               DISPLAY "No book record matches the title."
+           END-IF.
 
 
 
